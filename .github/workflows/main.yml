@@ -1,32 +1,19 @@
 
-name: Product API CI
+from fastapi.testclient import TestClient
+from main import app
 
-on:
-  push:
-    branches:
-      - main
+client = TestClient(app)
 
-  pull_request:
-    branches:
-      - main
+def test_home():
+    response = client.get("/")
+    assert response.status_code == 200
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
+def test_get_products():
+    response = client.get("/products")
+    assert response.status_code == 200
+    assert len(response.json()) == 3
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install packages
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run tests
-        run: pytest -v
+def test_get_single_product():
+    response = client.get("/products/1")
+    assert response.status_code == 200
+    assert response.json()["name"] == "Laptop"
